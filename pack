@@ -1,0 +1,3 @@
+#!/bin/bash
+cd ./dist
+rsync -avz --delete . "gabriel@newton2.eycproveedores.com:html/newton/web"

@@ -70,17 +70,19 @@ var methods = {
       data.modulos = data.storage.get("modulos");
       data.roles = data.storage.get("roles");
       if (data.roles) data.roles.collection = methods.mapToCollection(data.roles, "name");
-      axios.defaults.headers.common = {
-        "Auth-Token": data.user.token,
-        "Content-Type": "application/json"
-      };
+      if (data.user) {
+        axios.defaults.headers.common = {
+          "Auth-Token": data.user.token,
+          "Content-Type": "application/json"
+        };
+      }
     }
     resolver(data.user);
   },
   login(username, password) {
     var promise = axios({
       url: `${data.url}/api/login`,
-      responseType: 'json',
+      responseType: "json",
       auth: {
         username: username,
         password: password
@@ -100,7 +102,7 @@ var methods = {
       })
       .catch((err) => {
         this.showError(err);
-      })
+      });
     return promise;
   },
   get(uri) {
@@ -185,8 +187,8 @@ export default {
   data() {
     return {
       api: data
-    }
+    };
   },
-  methods: methods,
+  methods: methods
 };
-export const api = data
+export const api = data;
