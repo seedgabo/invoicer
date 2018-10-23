@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer persistent v-model="drawer" enable-resize-watcher fixed app>
+    <v-navigation-drawer floating v-model="drawer" temporary="" app>
       <v-list>
         <v-list-tile :to="item.to" v-for="(item, i) in items" :key="i">
           <v-list-tile-action>
@@ -32,7 +32,9 @@
     <v-content>
       <div :class="{'backgound': !api.user}">
         <div class="opaquer">
-          <router-view />
+          <v-container fluid>
+            <router-view />
+          </v-container>
         </div>
       </div>
     </v-content>

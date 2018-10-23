@@ -1,11 +1,18 @@
 <template>
-  <v-container fluid>
-    <v-layout column align-center>
-      <v-progress-linear :indeterminate="true" v-if="loading"></v-progress-linear>
-      <v-data-table disable-initial-sort :headers="headers" :items="invoices.data" class="elevation-1">
+  <v-layout wrap>
+    <v-flex sm8 xs12 class="text-xs-left">
+      <v-btn color="primary"> Agregar </v-btn>
+    </v-flex>
+    <v-flex sm4 xs12 class="text-xs-right">
+      <v-spacer></v-spacer>
+      <v-text-field v-model="search" append-icon="search" label="Search" hide-details></v-text-field>
+    </v-flex>
+    <v-flex xs12>
+      <v-data-table disable-initial-sort :headers="headers" :items="invoices.data" class="elevation-1" :loading="loading" :search="search">
+        <v-progress-linear :indeterminate="true" v-if="loading"></v-progress-linear>
         <template slot="items" slot-scope="props">
           <td>{{props.item.number}}</td>
-          <td>{{props.item.fecha | moment('ll') }}</td>
+          <td class="text-xs-center">{{props.item.fecha | moment('ll') }}</td>
           <td class="text-xs-center">
             <span v-if="props.item.cliente"> {{props.item.cliente.full_name | truncate(25)}} - <br></span>
             <span v-if="props.item.tercero"> {{props.item.tercero.full_name | truncate(25)}}</span>
@@ -13,11 +20,17 @@
           <td class="text-xs-center text-capitalize">
             <v-chip small :class="props.item.estado">{{ props.item.estado }}</v-chip>
           </td>
+          <td class="text-xs-center">{{props.item.orden_compra }}</td>
+          <td class="text-xs-right">{{props.item.taxes | currency('$', 0) }}</td>
           <td class="text-xs-right">{{props.item.total | currency('$', 0) }}</td>
         </template>
+        <template slot="pageText" slot-scope="props">
+          {{ invoices.from }} - {{ invoices.total }} de {{ invoices.total }}
+        </template>
       </v-data-table>
-    </v-layout>
-  </v-container>
+
+    </v-flex>
+  </v-layout>
 </template>
 <script>
 export default {
@@ -29,6 +42,7 @@ export default {
 	data() {
 		return {
 			invoices: { data: [] },
+			search: "",
 			headers: [
 				{
 					text: "#",
@@ -37,7 +51,7 @@ export default {
 				},
 				{
 					text: "Fecha",
-					align: "left",
+					align: "center",
 					value: "fecha"
 				},
 				{
@@ -49,6 +63,16 @@ export default {
 					text: "Estado",
 					align: "center",
 					value: "estado"
+				},
+				{
+					text: "Orden Compra",
+					align: "center",
+					value: "orden_compra"
+				},
+				{
+					text: "Imp",
+					align: "right",
+					value: "taxes"
 				},
 				{
 					text: "Total",
@@ -77,7 +101,7 @@ export default {
 </script>
 <style scoped>
 .emitida {
-	background-color: #1867c0;
+	background-color: #2281ec;
 	color: white;
 }
 </style>
