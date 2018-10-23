@@ -5,11 +5,10 @@
     </v-flex>
     <v-flex sm4 xs12 class="text-xs-right">
       <v-spacer></v-spacer>
-      <v-text-field v-model="search" append-icon="search" label="Search" hide-details></v-text-field>
+      <v-text-field v-model="search"   append-icon="search" label="Search" hide-details></v-text-field>
     </v-flex>
     <v-flex xs12>
-      <v-data-table disable-initial-sort :headers="headers" :items="invoices.data" class="elevation-1" :loading="loading" :search="search">
-        <v-progress-linear :indeterminate="true" v-if="loading"></v-progress-linear>
+      <v-data-table :pagination.sync="pagination" :headers="headers" :items="invoices.data" class="elevation-1" :loading="loading" :total-items="invoices.total" :rows-per-page-items="[5,10,25,50,100]">
         <template slot="items" slot-scope="props">
           <tr @click="select(props.item)">
             <td>{{props.item.number}}</td>
@@ -25,9 +24,6 @@
             <td class="text-xs-right">{{props.item.taxes | currency('$', 0) }}</td>
             <td class="text-xs-right">{{props.item.total | currency('$', 0) }}</td>
           </tr>
-        </template>
-        <template slot="pageText" slot-scope="props">
-          {{ invoices.from }} - {{ invoices.total }} de {{ invoices.total }}
         </template>
       </v-data-table>
 
@@ -103,9 +99,6 @@
 <script>
 export default {
 	async mounted() {
-		if (this.invoices.data.length == 0) {
-			this.getInvoices();
-		}
 		if (this.$route.query.invoice_id) {
 			await this.load(`terceros`);
 			this.invoice = (await this.get(`invoices/${this.$route.query.invoice_id}`, "include=terceros")).data;
@@ -114,7 +107,7 @@ export default {
 	},
 	data() {
 		return {
-			invoices: { data: [] },
+			invoices: { data: [], total: 0 },
 			search: "",
 			invoice: null,
 			dialog: false,
@@ -132,7 +125,7 @@ export default {
 				{
 					text: "Tercero",
 					align: "center",
-					value: "tercero"
+					value: "tercero_id"
 				},
 				{
 					text: "Estado",
@@ -147,14 +140,17 @@ export default {
 				{
 					text: "Impuestos",
 					align: "right",
-					value: "taxes"
+					value: "taxes",
+          sortable: false
 				},
 				{
 					text: "Total",
 					align: "right",
-					value: "total"
+          value: "total",
+          sortable: false
 				}
-			],
+      ],
+			pagination: {},
 			loading: false,
 			menu: false,
 			menu2: false
@@ -162,12 +158,25 @@ export default {
 	},
 	methods: {
 		getInvoices() {
-			this.loading = true;
-			this.get(`invoices?order[created_at]=desc&paginate=150&include=tercero${this.api.user.cliente_id ? "" : ",cliente"}`)
+      var { sortBy, descending, page, rowsPerPage } = this.pagination;
+      if(!sortBy) sortBy = "fecha";
+      if(!rowsPerPage) rowsPerPage=10;
+      if(!page) page=1;
+      var filter = "";
+      if(this.search.length >0){
+        filter +=`&orWhereLike[number]=${this.search}&orWhereLike[orden_compra]=${this.search}`
+      }
+      this.loading = true;
+			this.get(
+				`invoices?page=${page}&order[${sortBy}]=${descending ? "desc" : "asc"}&paginate=${rowsPerPage}&include=tercero${
+					this.api.user.cliente_id ? "" : ",cliente"
+				}${filter}`
+			)
 				.then((resp) => {
 					this.loading = false;
 					console.log(resp.data);
-					this.invoices = resp.data;
+          this.invoices = resp.data;
+          this.pagination.totalItems = resp.data.total;
 				})
 				.catch((err) => {
 					this.showError(err);
@@ -196,7 +205,19 @@ export default {
 			await this.load(`terceros`);
 			this.invoice = (await this.get(`invoices/${this.$route.query.invoice_id}`, "include=terceros")).data;
 			this.dialog = true;
-		}
+		},
+		pagination: {
+			handler() {
+				this.getInvoices();
+			},
+			deep: true
+    },
+    search(){
+      clearTimeout(window.cancelable);
+      window.cancelable = setTimeout(()=>{
+        this.getInvoices();
+      },400);
+    }
 	}
 };
 </script>
