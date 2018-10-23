@@ -49,8 +49,9 @@ export default {
 			drawer: false,
 			items: [
 				{
-					icon: "bar_chart",
-					title: "Dashboard"
+					icon: "insert_drive_file",
+					title: "Facturas",
+					to: "/"
 				}
 			],
 			title: "Facturador"

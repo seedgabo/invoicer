@@ -136,17 +136,17 @@ var methods = {
 
   load(resource, withs = [], uri = "") {
     return new Promise((resolve, reject) => {
-      if (this.objects[resource]) return resolve(this.objects[resource]);
+      if (data.objects[resource]) return resolve(data.objects[resource]);
       var adder = "?";
       withs.forEach((res) => {
         adder += `&with[]=${res}`;
       });
       axios
-        .get(this.url + "/api/" + resource + adder + uri)
+        .get(data.url + "/api/" + resource + adder + uri)
         .then((response) => {
           response.data.collection = this.mapToCollection(response.data);
-          this.$set(this.objects, resource, response.data);
-          resolve(this.objects[resource]);
+          data.objects[resource] = response.data;
+          resolve(data.objects[resource]);
         })
         .catch((err) => {
           reject(err);
